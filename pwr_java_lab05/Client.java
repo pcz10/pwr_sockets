@@ -23,7 +23,7 @@ public class Client implements Runnable
 	@Override
 	public void run() 
 	{
-
+		
 		try(
 			Socket socket = new Socket(hostName,4444);
 			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
@@ -32,10 +32,13 @@ public class Client implements Runnable
 			
 			)
 		{
+			String serverInput;
 			String userInput;
 			while((userInput = stdIn.readLine()) != null)
 			{
-				out.println(userInput);
+				out.println(name+userInput);
+				serverInput = in.readLine();
+				System.out.println(serverInput);
 			}
 		}
 		catch(IOException e)
@@ -44,4 +47,5 @@ public class Client implements Runnable
 		}
 	}
 	String hostName;
+	String name = "client : ";
 }
