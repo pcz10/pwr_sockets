@@ -1,6 +1,8 @@
 package pwr_java_lab05;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -21,22 +23,20 @@ public class Client implements Runnable
 	@Override
 	public void run() 
 	{
-		Socket socket = null;
-		try
-		{
-			Thread.sleep(1000);
+
+		try(
+			Socket socket = new Socket(hostName,4444);
+			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+			BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
 			
-			socket = new Socket(hostName,4444);
-			PrintWriter outWriter = new PrintWriter(socket.getOutputStream(),true);
-			outWriter.println("hi server");
-		}
-		catch(InterruptedException e)
+			)
 		{
-			e.printStackTrace();
-		}
-		catch(UnknownHostException e)
-		{
-			e.printStackTrace();
+			String userInput;
+			while((userInput = stdIn.readLine()) != null)
+			{
+				out.println(userInput);
+			}
 		}
 		catch(IOException e)
 		{
