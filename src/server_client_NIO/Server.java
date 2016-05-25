@@ -16,10 +16,10 @@ public class Server
 {
 	public static void main(String[] args) throws IOException
 	{
+		ServerSocketChannel serverSocket = ServerSocketChannel.open();
+		configureServerSocketProperties(serverSocket);
 		Selector selector = Selector.open();
-		ServerSocketChannel serverSocket = configureServerSocketProperties();
-		registerServerSocket(selector, serverSocket);
-		
+		serverSocket.register(selector, SelectionKey.OP_ACCEPT);
 		ArrayList<SocketChannel> connectedClients = new ArrayList<>();
 		
 		while(true)
@@ -27,63 +27,48 @@ public class Server
 			selector.select();
 			Set<SelectionKey> serverKeys = selector.selectedKeys();
 			Iterator<SelectionKey> keysIterator = serverKeys.iterator();
-			
 			while(keysIterator.hasNext())
 			{
 				SelectionKey myKey = keysIterator.next();
-				SocketChannel clientSocket;
-				selector.selectNow();
-				
 				if(myKey.isAcceptable())
-					configureConnectionBetweenClientSocketAndServer(selector, serverSocket, connectedClients);
-				
-				if(myKey.isReadable())
+				{	
+					SocketChannel clientSocket = serverSocket.accept();
+					configureConnectionBetweenClientSocketAndServer(selector, serverSocket, clientSocket, connectedClients);
+				}
+				else if(myKey.isWritable())
 				{
-					clientSocket = (SocketChannel) myKey.channel();
-					ByteBuffer buffer = Client.buffer;
-					clientSocket.read(buffer);
-					String messageFromClient = new String (buffer.array()).trim();
-					
-					buffer.clear();
+					SocketChannel clientSocket = (SocketChannel) myKey.channel();
+					ByteBuffer output = ByteBuffer.allocate(512);
+					output.clear();
+					clientSocket.read(output);
+					String messageFromClient = new String (output.array()).trim();
 					byte[] result = messageFromClient.getBytes();
-					buffer = ByteBuffer.wrap(result);
-					
+					output = ByteBuffer.wrap(result);
+					//output.flip();
 					for(SocketChannel client : connectedClients)
 					{
-						String whatBuffersSends = new String(buffer.array()).trim();
-						int size = connectedClients.size();
-						log("\nKLASA SERVER, rozmiar kontenera klientow : "+size);
-						log("\nKLASA SERVER. Wysylam do klienta tekst: "+ whatBuffersSends);
-					
-						client.write(buffer);	
-						buffer.rewind();
-						//buffer.flip();
+						while(output.hasRemaining())
+							client.write(output);	
 					}
+					isMessageSent = true;
 				}
 				keysIterator.remove();
 			}
 		}
 	}
-	
-	private static void registerServerSocket(Selector selector, ServerSocketChannel serverSocket) throws ClosedChannelException 
+	private static ServerSocketChannel configureServerSocketProperties(ServerSocketChannel serverSocket) throws IOException 
 	{
-		int ops = serverSocket.validOps();
-		SelectionKey selectKey = serverSocket.register(selector, ops, null);
-	}
-	private static ServerSocketChannel configureServerSocketProperties() throws IOException {
-		ServerSocketChannel serverSocket = ServerSocketChannel.open();
+		serverSocket.configureBlocking(false);
 		InetSocketAddress socketAddress = new InetSocketAddress(1111);
 		serverSocket.bind(socketAddress);
-		serverSocket.configureBlocking(false);
 		return serverSocket;
 	}
 	private static void configureConnectionBetweenClientSocketAndServer (Selector selector,
-			ServerSocketChannel serverSocket, ArrayList<SocketChannel> listOfClientsConnectedToServer)
-			throws IOException, ClosedChannelException {
-		SocketChannel clientSocket;
-		clientSocket = serverSocket.accept();
+			ServerSocketChannel serverSocket, SocketChannel clientSocket, ArrayList<SocketChannel> listOfClientsConnectedToServer)
+			throws IOException, ClosedChannelException 
+	{
 		clientSocket.configureBlocking(false);
-		clientSocket.register(selector, SelectionKey.OP_READ );
+		SelectionKey key2 = clientSocket.register(selector, SelectionKey.OP_WRITE );
 		listOfClientsConnectedToServer.add(clientSocket);
 		System.out.println("connection accepted " + clientSocket.getLocalAddress() + "\n");
 	}
@@ -91,4 +76,5 @@ public class Server
 	{
 		System.out.println(message);
 	}
+	public static boolean isMessageSent = false;
 }

@@ -22,15 +22,21 @@ public class Client
 				)
 			{
 				boolean connectionRequest = true;
-				//
+				ByteBuffer buffer = ByteBuffer.allocate(512);
 				while(connectionRequest)
 				{
 					String message = readMessageFromServer(clientSocket, buffer);
-					if(message!=null)
 						log(" "+message+ " ");
 					String userInput;
 					if((userInput = inputStream.readLine()) != null)
+					{
+						if(Server.isMessageSent)
+						{
+							log(readMessageFromServer(clientSocket, buffer));
+							Server.isMessageSent = false;
+						}
 						sendMessageToServer(clientSocket, userInput, buffer);
+					}
 				}
 		}	
 	clientSocket.close();
@@ -38,26 +44,20 @@ public class Client
 	
 	private static String readMessageFromServer(SocketChannel clientSocket, ByteBuffer buffer) throws IOException 
 	{
-		log("metoda readMessageFromServer. PRZED CZYTANIEM");
+		buffer.clear();
 		clientSocket.read(buffer);
-		buffer.rewind();
-		//buffer.flip();
 		String result = new String(buffer.array()).trim();
-		log("metoda readMessageFromServer. PO CZYTANIU");
+		buffer.rewind();
 		return result;
 	}
 	private static void sendMessageToServer(SocketChannel clientSocket, String userInput, ByteBuffer buffer) throws IOException
 	{
-		log("metoda sendMessageToServer. PRZED WPISANIEM");
-		log("\ntekst który wpisuje to: "+userInput);
+		buffer.clear();
 		byte[] message = new String(userInput).getBytes();
-		buffer = ByteBuffer.wrap(message);		
+		buffer = ByteBuffer.wrap(message);	
+		buffer.flip();	
 		clientSocket.write(buffer);
-		buffer.rewind();
-		//buffer.flip();
-		log("metoda sendMessageToServer. PO WPISANIU");
 	}
-	public static ByteBuffer buffer = ByteBuffer.allocate(256);
 	public static void log(String message)
 	{
 		System.out.println(message);
