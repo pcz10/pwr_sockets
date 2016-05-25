@@ -45,7 +45,6 @@ public class Server
 					String messageFromClient = new String (buffer.array()).trim();
 					
 					buffer.clear();
-					
 					byte[] result = messageFromClient.getBytes();
 					buffer = ByteBuffer.wrap(result);
 					
@@ -55,9 +54,11 @@ public class Server
 						int size = connectedClients.size();
 						log("\nKLASA SERVER, rozmiar kontenera klientow : "+size);
 						log("\nKLASA SERVER. Wysylam do klienta tekst: "+ whatBuffersSends);
-						client.write(buffer);
+					
+						client.write(buffer);	
+						buffer.rewind();
+						//buffer.flip();
 					}
-					buffer.clear();
 				}
 				keysIterator.remove();
 			}
