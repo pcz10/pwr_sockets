@@ -42,9 +42,9 @@ public class Server
 					output.clear();
 					clientSocket.read(output);
 					String messageFromClient = new String (output.array()).trim();
+					log(messageFromClient);
 					byte[] result = messageFromClient.getBytes();
 					output = ByteBuffer.wrap(result);
-					//output.flip();
 					for(SocketChannel client : connectedClients)
 					{
 						while(output.hasRemaining())

@@ -21,37 +21,34 @@ public class Client
 				BufferedReader inputStream = new BufferedReader(new InputStreamReader(System.in));
 				)
 			{
-				boolean connectionRequest = true;
-				ByteBuffer buffer = ByteBuffer.allocate(512);
-				while(connectionRequest)
+				boolean isConnected = true;
+				while(isConnected)
 				{
-					String message = readMessageFromServer(clientSocket, buffer);
-						log(" "+message+ " ");
 					String userInput;
-					if((userInput = inputStream.readLine()) != null)
+					if((userInput = inputStream.readLine())!=null)
 					{
-						log(readMessageFromServer(clientSocket, buffer));
-						sendMessageToServer(clientSocket, userInput, buffer);
+						sendMessageToServer(clientSocket, userInput);
+						log(readMessageFromServer(clientSocket));
 					}
-				}
+				}	
 		}	
 	clientSocket.close();
 	}
 	
-	private static String readMessageFromServer(SocketChannel clientSocket, ByteBuffer buffer) throws IOException 
+	private static String readMessageFromServer(SocketChannel clientSocket) throws IOException 
 	{
-		buffer.clear();
+		ByteBuffer buffer = ByteBuffer.allocate(512);
 		clientSocket.read(buffer);
 		String result = new String(buffer.array()).trim();
 		buffer.rewind();
 		return result;
 	}
-	private static void sendMessageToServer(SocketChannel clientSocket, String userInput, ByteBuffer buffer) throws IOException
+	private static void sendMessageToServer(SocketChannel clientSocket, String userInput) throws IOException
 	{
-		buffer.clear();
+		ByteBuffer buffer = ByteBuffer.allocate(512);
+		buffer.flip();
 		byte[] message = new String(userInput).getBytes();
 		buffer = ByteBuffer.wrap(message);	
-		buffer.flip();	
 		clientSocket.write(buffer);
 	}
 	public static void log(String message)
