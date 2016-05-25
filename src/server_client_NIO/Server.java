@@ -21,7 +21,6 @@ public class Server
 		Selector selector = Selector.open();
 		serverSocket.register(selector, SelectionKey.OP_ACCEPT);
 		ArrayList<SocketChannel> connectedClients = new ArrayList<>();
-		
 		while(true)
 		{
 			selector.select();
@@ -40,17 +39,14 @@ public class Server
 					SocketChannel clientSocket = (SocketChannel) myKey.channel();
 					ByteBuffer output = ByteBuffer.allocate(512);
 					clientSocket.read(output);
-					String messageFromClient = new String (output.array()).trim();
-					byte[] result = messageFromClient.getBytes();
-					output = ByteBuffer.wrap(result);
+					output.flip();
 					for(SocketChannel client : connectedClients)
 					{
 						if(!client.equals(clientSocket))
 						{
-							log(connectedClients.size() + " size of conneccted clients");
 							while(output.hasRemaining())
-							client.write(output);	
-								output.rewind();
+								client.write(output);	
+							output.rewind();
 						}
 					}
 				}
