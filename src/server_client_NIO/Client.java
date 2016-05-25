@@ -39,15 +39,14 @@ public class Client
 	{
 		ByteBuffer buffer = ByteBuffer.allocate(512);
 		clientSocket.read(buffer);
-		String result = new String(buffer.array()).trim();
+		String result = new String("RECIVED: " + buffer.array()).trim();
 		buffer.rewind();
 		return result;
 	}
 	private static void sendMessageToServer(SocketChannel clientSocket, String userInput) throws IOException
 	{
 		ByteBuffer buffer = ByteBuffer.allocate(512);
-		buffer.flip();
-		byte[] message = new String(userInput).getBytes();
+		byte[] message = new String("SEND :" + userInput).getBytes();
 		buffer = ByteBuffer.wrap(message);	
 		clientSocket.write(buffer);
 	}

@@ -39,16 +39,19 @@ public class Server
 				{
 					SocketChannel clientSocket = (SocketChannel) myKey.channel();
 					ByteBuffer output = ByteBuffer.allocate(512);
-					output.clear();
 					clientSocket.read(output);
 					String messageFromClient = new String (output.array()).trim();
-					log(messageFromClient);
 					byte[] result = messageFromClient.getBytes();
 					output = ByteBuffer.wrap(result);
 					for(SocketChannel client : connectedClients)
 					{
-						while(output.hasRemaining())
+						if(!client.equals(clientSocket))
+						{
+							log(connectedClients.size() + " size of conneccted clients");
+							while(output.hasRemaining())
 							client.write(output);	
+								output.rewind();
+						}
 					}
 				}
 				keysIterator.remove();
