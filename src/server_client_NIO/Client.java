@@ -30,11 +30,7 @@ public class Client
 					String userInput;
 					if((userInput = inputStream.readLine()) != null)
 					{
-						if(Server.isMessageSent)
-						{
-							log(readMessageFromServer(clientSocket, buffer));
-							Server.isMessageSent = false;
-						}
+						log(readMessageFromServer(clientSocket, buffer));
 						sendMessageToServer(clientSocket, userInput, buffer);
 					}
 				}

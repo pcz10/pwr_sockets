@@ -50,7 +50,6 @@ public class Server
 						while(output.hasRemaining())
 							client.write(output);	
 					}
-					isMessageSent = true;
 				}
 				keysIterator.remove();
 			}
@@ -76,5 +75,4 @@ public class Server
 	{
 		System.out.println(message);
 	}
-	public static boolean isMessageSent = false;
 }
