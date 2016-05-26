@@ -21,6 +21,7 @@ public class Client
 				BufferedReader inputStream = new BufferedReader(new InputStreamReader(System.in));
 				)
 			{
+				ConversationLogs logger = new ConversationLogs();
 				String clientNick = "\n" + inputStream.readLine();
 				boolean isConnected = true;
 				while(isConnected)
@@ -29,31 +30,39 @@ public class Client
 					String userInput;
 					if((userInput = inputStream.readLine())!=null)
 					{
-						sendMessageToServer(clientSocket, userInput, clientNick);
-						log(readMessageFromServer(clientSocket));
+						sendMessageToServer(clientSocket, userInput, clientNick, logger);
+						log(readMessageFromServer(clientSocket, logger));
 					}
 				}	
-		}	
+			}	
 	clientSocket.close();
 	}
 	
-	private static String readMessageFromServer(SocketChannel clientSocket) throws IOException 
+	private static String readMessageFromServer(SocketChannel clientSocket, ConversationLogs logger) throws IOException 
 	{
 		
 		ByteBuffer buffer = ByteBuffer.allocate(512);
 		clientSocket.read(buffer);
 		String result = new String(buffer.array()).trim();
 		String print = result;
+		if(print.length()>0)
+		{
+			logger.saveMessage(print);
+		}
 		buffer.rewind();
-		return  print;
+		return print;
 	}
-	private static void sendMessageToServer(SocketChannel clientSocket, String userInput, String clientNick) throws IOException
+	private static void sendMessageToServer(SocketChannel clientSocket, String userInput, String clientNick, ConversationLogs logger) throws IOException
 	{
 		ByteBuffer buffer = ByteBuffer.allocate(512);
-		String temporaryMessage = clientNick + " says: " + userInput;
-		byte[] message = new String(temporaryMessage).getBytes();
-		buffer = ByteBuffer.wrap(message);	
-		clientSocket.write(buffer);
+		String message = userInput;
+		if(message.length()>0)
+		{
+			logger.saveMessage(message);
+			byte[] messageAsBytes = new String(clientNick + " says: " + message).getBytes();
+			buffer = ByteBuffer.wrap(messageAsBytes);	
+			clientSocket.write(buffer);
+		}
 	}
 	public static void log(String message)
 	{
