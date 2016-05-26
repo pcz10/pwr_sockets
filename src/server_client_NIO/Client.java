@@ -21,8 +21,10 @@ public class Client
 				BufferedReader inputStream = new BufferedReader(new InputStreamReader(System.in));
 				)
 			{
-				ConversationLogs logger = new ConversationLogs();
-				String clientNick = "\n" + inputStream.readLine();
+				log("Type your nick name: ");
+				String clientInput = inputStream.readLine();
+				String clientNick = "\n" + clientInput;
+				Logs logger = new Logs(clientInput);
 				boolean isConnected = true;
 				while(isConnected)
 				{
@@ -31,14 +33,13 @@ public class Client
 					if((userInput = inputStream.readLine())!=null)
 					{
 						sendMessageToServer(clientSocket, userInput, clientNick, logger);
-						log(readMessageFromServer(clientSocket, logger));
+						log(readMessageFromServer(clientSocket, logger,clientNick));
 					}
 				}	
 			}	
 	clientSocket.close();
 	}
-	
-	private static String readMessageFromServer(SocketChannel clientSocket, ConversationLogs logger) throws IOException 
+	private static String readMessageFromServer(SocketChannel clientSocket, Logs logger, String clientNick) throws IOException 
 	{
 		
 		ByteBuffer buffer = ByteBuffer.allocate(512);
@@ -52,14 +53,14 @@ public class Client
 		buffer.rewind();
 		return print;
 	}
-	private static void sendMessageToServer(SocketChannel clientSocket, String userInput, String clientNick, ConversationLogs logger) throws IOException
+	private static void sendMessageToServer(SocketChannel clientSocket, String userInput, String clientNick, Logs logger) throws IOException
 	{
 		ByteBuffer buffer = ByteBuffer.allocate(512);
 		String message = userInput;
 		if(message.length()>0)
 		{
-			logger.saveMessage(message);
 			byte[] messageAsBytes = new String(clientNick + " says: " + message).getBytes();
+			logger.saveMessage(message);
 			buffer = ByteBuffer.wrap(messageAsBytes);	
 			clientSocket.write(buffer);
 		}

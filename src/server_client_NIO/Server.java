@@ -16,8 +16,9 @@ public class Server
 {
 	public static void main(String[] args) throws IOException
 	{
+		Logs logger = new Logs();
 		ServerSocketChannel serverSocket = ServerSocketChannel.open();
-		configureServerSocketProperties(serverSocket);
+		configureServerSocketProperties(serverSocket, logger);
 		Selector selector = Selector.open();
 		serverSocket.register(selector, SelectionKey.OP_ACCEPT);
 		ArrayList<SocketChannel> connectedClients = new ArrayList<>();
@@ -32,13 +33,16 @@ public class Server
 				if(myKey.isAcceptable())
 				{	
 					SocketChannel clientSocket = serverSocket.accept();
-					configureConnectionBetweenClientSocketAndServer(selector, serverSocket, clientSocket, connectedClients);
+					establishConnectionBetweenClientSocketAndServer(selector, serverSocket, clientSocket, connectedClients, logger);
 				}
 				else if(myKey.isWritable())
 				{
 					SocketChannel clientSocket = (SocketChannel) myKey.channel();
 					ByteBuffer output = ByteBuffer.allocate(512);
 					clientSocket.read(output);
+					String forLogs = new String(output.array()).trim();
+					if(forLogs.length()>0)
+						logger.saveServerLog(forLogs);
 					output.flip();
 					for(SocketChannel client : connectedClients)
 					{
@@ -54,24 +58,28 @@ public class Server
 			}
 		}
 	}
-	private static ServerSocketChannel configureServerSocketProperties(ServerSocketChannel serverSocket) throws IOException 
+	private static ServerSocketChannel configureServerSocketProperties(ServerSocketChannel serverSocket, Logs logger) throws IOException 
 	{
 		serverSocket.configureBlocking(false);
 		InetSocketAddress socketAddress = new InetSocketAddress(1111);
 		serverSocket.bind(socketAddress);
+		logger.saveServerLog("Server local address: " + serverSocket.getLocalAddress().toString());
 		return serverSocket;
 	}
-	private static void configureConnectionBetweenClientSocketAndServer (Selector selector,
-			ServerSocketChannel serverSocket, SocketChannel clientSocket, ArrayList<SocketChannel> listOfClientsConnectedToServer)
+	private static void establishConnectionBetweenClientSocketAndServer (Selector selector,
+			ServerSocketChannel serverSocket, SocketChannel clientSocket, ArrayList<SocketChannel> listOfClientsConnectedToServer,
+			Logs logger)
 			throws IOException, ClosedChannelException 
 	{
 		clientSocket.configureBlocking(false);
 		SelectionKey key2 = clientSocket.register(selector, SelectionKey.OP_WRITE );
 		listOfClientsConnectedToServer.add(clientSocket);
-		System.out.println("connection accepted " + clientSocket.getLocalAddress() + "\n");
+		String connectionLog = ("Connection accepted " + clientSocket.getLocalAddress() + "\n");
+		logger.saveServerLog(connectionLog);
 	}
 	public static void log(String message)
 	{
 		System.out.println(message);
 	}
+	
 }
